@@ -22,7 +22,7 @@ NAMESPACE_FILES=$(addprefix $(MANIFESTS)/,yarn-cluster-namespace.yaml)
 HDFS_FILES_BASE=hdfs-nn-statefulset.yaml hdfs-dn-statefulset.yaml
 HDFS_FILES=$(addprefix $(MANIFESTS)/,$(HDFS_FILES_BASE))
 
-YARN_FILES_BASE=yarn-rm-statefulset.yaml yarn-nm-statefulset.yaml
+YARN_FILES_BASE=yarn-rm-statefulset.yaml yarn-nm-statefulset.yaml yarn-ui-ingress.yaml
 YARN_FILES=$(addprefix $(MANIFESTS)/,$(YARN_FILES_BASE))
 
 ZEPPELIN_FILES_BASE=zeppelin-statefulset.yaml
@@ -85,8 +85,10 @@ get-configmap: kubectl
 
 
 ### All apps
-create-apps: create-hdfs create-yarn create-zeppelin
-delete-apps: delete-zeppelin delete-yarn delete-hdfs
+#create-apps: create-hdfs create-yarn create-zeppelin
+#delete-apps: delete-zeppelin delete-yarn delete-hdfs
+create-apps: create-hdfs create-yarn
+delete-apps: delete-yarn delete-hdfs
 
 
 ### HDFS
@@ -146,7 +148,8 @@ pf-rm: wait-for-pod-yarn-rm-0
 pf-zeppelin: wait-for-pod-zeppelin-0
 	$(KUBECTL) port-forward zeppelin-0 8081:8080 2>/dev/null &
 
-pf: pf-rm pf-zeppelin
+#pf: pf-rm pf-zeppelin
+pf: pf-rm
 
 delete-%-pf: kubectl
 	-pkill -f "kubectl.*port-forward.*$*.*"
@@ -155,7 +158,7 @@ delete-pf: kubectl delete-zeppelin-pf delete-yarn-rm-pf
 
 HADOOP_VERSION=$(shell grep "image: " manifests/yarn-rm-statefulset.yaml|cut -d'/' -f2|cut -d ':' -f2)
 test: wait-for-pod-yarn-nm-0
-	$(KUBECTL) exec -it yarn-nm-0 -- /usr/local/hadoop/bin/hadoop jar /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-client-jobclient-$(HADOOP_VERSION)-tests.jar TestDFSIO -write -nrFiles 5 -fileSize 128MB -resFile /tmp/TestDFSIOwrite.txt
+	$(KUBECTL) exec -it yarn-nm-0 -- /usr/local/hadoop/bin/hadoop jar /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-client-jobclient-$(HADOOP_VERSION)-tests.jar TestDFSIO -write -nrFiles 50 -fileSize 128MB -resFile /tmp/TestDFSIOwrite.txt
 
 -include localkube.mk
 -include custom.mk
