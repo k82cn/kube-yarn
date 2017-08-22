@@ -1,0 +1,13 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: yarn-ui
+  namespace: yarn-cluster
+spec:
+  rules:
+  - host: yarn-ui.k82cn.demo
+    http:
+      paths:
+      - backend:
+          serviceName: yarn-ui
+          servicePort: 8088
